@@ -78,7 +78,7 @@ async function quoteAmountOut() {
   console.log('output_amount: ', output_amount);
 }
 
-async function swap() {
+async function swapMarketPrice() {
   await checkBalance();
 
   await quoteAmountOut();
@@ -161,7 +161,7 @@ async function signAndSendTransactions(txs) {
   console.log(res);
 }
 
-// listPools();
-// swap();
+listPools();
+// swapMarketPrice();
 // placeLimitOrder();
 // cancelOrder('usdt.fakes.testnet|wrap.testnet|100#22');
