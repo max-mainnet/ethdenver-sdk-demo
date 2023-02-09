@@ -1,0 +1,24 @@
+{
+  "name": "ethdenver-sdk-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "demo": "NEAR_ENV=testnet node demo.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/max-mainnet/ethdenver-sdk-demo.git"
+  },
+  "author": "Max",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/max-mainnet/ethdenver-sdk-demo/issues"
+  },
+  "homepage": "https://github.com/max-mainnet/ethdenver-sdk-demo#readme",
+  "dependencies": {
+    "@ref-finance/ref-sdk": "^1.1.9"
+  }
+}
