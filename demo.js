@@ -1,4 +1,4 @@
-import { NEAR_META_DATA } from '@ref-finance/ref-sdk';
+import { NEAR_META_DATA, nearDepositTransaction } from '@ref-finance/ref-sdk';
 import {
   quote,
   ftGetTokenMetadata,
@@ -16,20 +16,14 @@ import {
   cancel_order,
   claim_order,
   listDCLPools,
-  getDCLPool,
-  get_order,
-  quote_by_output,
-  list_user_assets,
-  priceToPoint,
-  pointToPrice,
   ftGetBalance,
 } from '@ref-finance/ref-sdk';
 
-const tokenInId = 'usdt.fakes.testnet';
+const tokenInId = 'usdc.fakes.testnet';
 
-const tokenOutId = 'wrap.testnet';
+const tokenOutId = 'aurora.fakes.testnet';
 
-const fee = 100;
+const fee = 2000;
 
 const input_amount = '1';
 
@@ -49,17 +43,17 @@ async function listPools() {
 }
 
 async function checkBalance() {
-  const USDT = await ftGetTokenMetadata(tokenInId);
+  const AURORA = await ftGetTokenMetadata(tokenOutId);
 
-  const balance_of_usdt = await ftGetBalance(tokenInId, AccountId);
+  const balance_of_aurora = await ftGetBalance(tokenOutId, AccountId);
 
-  console.log('balance_of_usdt: ', toReadableNumber(USDT.decimals, balance_of_usdt));
+  console.log('balance_of_aurora: ', toReadableNumber(AURORA.decimals, balance_of_aurora));
 
-  const NEAR = NEAR_META_DATA;
+  const USDC = await ftGetTokenMetadata(tokenInId);
 
-  const balance_of_near = await ftGetBalance('NEAR', AccountId);
+  const balance_of_usdc = await ftGetBalance(tokenInId, AccountId);
 
-  console.log('balance_of_near: ', toReadableNumber(NEAR.decimals, balance_of_near));
+  console.log('balance_of_usdc: ', toReadableNumber(USDC.decimals, balance_of_usdc));
 }
 
 async function quoteAmountOut() {
@@ -75,7 +69,7 @@ async function quoteAmountOut() {
   });
   const output_amount = toReadableNumber(tokenB.decimals, res.amount);
 
-  console.log('output_amount: ', output_amount);
+  console.log('output amount of aurora: ', output_amount);
 }
 
 async function swapMarketPrice() {
@@ -87,7 +81,8 @@ async function swapMarketPrice() {
 
   const tokenB = await ftGetTokenMetadata(tokenOutId);
 
-  const res = await DCLSwap({
+  // get payload of transactions
+  const payload = await DCLSwap({
     swapInfo: {
       amountA: input_amount,
       tokenA,
@@ -100,14 +95,14 @@ async function swapMarketPrice() {
     AccountId,
   });
 
-  await signAndSendTransactions(res);
+  await signAndSendTransactions(payload);
 
   await checkBalance();
 }
 
 async function listActiveOrders() {
   const orders = await list_active_orders(AccountId);
-  console.log('active orders: ', orders);
+  console.log('my active orders: ', orders);
 }
 
 async function placeLimitOrder() {
@@ -119,7 +114,7 @@ async function placeLimitOrder() {
 
   const tokenB = await ftGetTokenMetadata(tokenOutId);
 
-  const res = await DCLSwap({
+  const payload = await DCLSwap({
     swapInfo: {
       amountA: input_amount,
       tokenA: tokenA,
@@ -127,12 +122,12 @@ async function placeLimitOrder() {
     },
     LimitOrderWithSwap: {
       pool_id,
-      output_amount: '4.0',
+      output_amount: '4',
     },
     AccountId,
   });
 
-  await signAndSendTransactions(res);
+  await signAndSendTransactions(payload);
 
   await checkBalance();
 
@@ -147,21 +142,32 @@ async function cancelOrder(order_id) {
   await listActiveOrders();
 }
 
-async function signAndSendTransactions(txs) {
+async function signAndSendTransactions(payload) {
+  // got signed transactions
+
+  console.log('we are trying to sign and send transactions...');
+
   const signedTransactions = await getSignedTransactionsByMemoryKey({
-    transactionsRef: txs,
+    transactionsRef: payload,
     AccountId,
     keyPath,
+  }).catch((e) => {
+    console.log('error: ', e);
   });
 
-  console.log(signedTransactions);
+  const res = await sendTransactionsByMemoryKey({ signedTransactions }).catch((e) => {
+    console.log('error: ', e);
+  });
 
-  const res = await sendTransactionsByMemoryKey({ signedTransactions });
+  console.log('res: ', res);
 
-  console.log(res);
+  console.log('transactions sent!');
 }
 
-listPools();
+// listPools();
+// checkBalance();
+// quoteAmountOut();
 // swapMarketPrice();
-// placeLimitOrder();
-// cancelOrder('usdt.fakes.testnet|wrap.testnet|100#22');
+// listActiveOrders();
+placeLimitOrder();
+// cancelOrder('aurora.fakes.testnet|usdc.fakes.testnet|2000#8');
