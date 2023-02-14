@@ -1,4 +1,3 @@
-import { NEAR_META_DATA, nearDepositTransaction } from '@ref-finance/ref-sdk';
 import {
   quote,
   ftGetTokenMetadata,
@@ -23,7 +22,7 @@ const tokenInId = 'usdc.fakes.testnet';
 
 const tokenOutId = 'aurora.fakes.testnet';
 
-const fee = 2000;
+const fee = 2000; // charge to 0.2%
 
 const input_amount = '1';
 
@@ -57,23 +56,24 @@ async function checkBalance() {
 }
 
 async function quoteAmountOut() {
-  const tokenA = await ftGetTokenMetadata(tokenInId);
+  const tokenA = await ftGetTokenMetadata(tokenInId); // usdc
 
-  const tokenB = await ftGetTokenMetadata(tokenOutId);
+  const tokenB = await ftGetTokenMetadata(tokenOutId); // aurora
 
-  const res = await quote({
+  const result = await quote({
     pool_ids: pool_ids,
-    input_token: tokenA,
-    output_token: tokenB,
+    input_token: tokenA, // usdc
+    output_token: tokenB, // aurora
     input_amount: input_amount,
   });
-  const output_amount = toReadableNumber(tokenB.decimals, res.amount);
+
+  const output_amount = toReadableNumber(tokenB.decimals, result.amount);
 
   console.log('output amount of aurora: ', output_amount);
 }
 
 async function swapMarketPrice() {
-  await checkBalance();
+  await checkBalance(); // check balance before swap
 
   await quoteAmountOut();
 
@@ -89,15 +89,15 @@ async function swapMarketPrice() {
       tokenB,
     },
     Swap: {
-      min_output_amount: '0',
+      min_output_amount: '0', // to avoid slippage error
       pool_ids,
     },
-    AccountId,
+    AccountId, // juaner.testnet
   });
 
   await signAndSendTransactions(payload);
 
-  await checkBalance();
+  await checkBalance(); // check balance after swap
 }
 
 async function listActiveOrders() {
@@ -105,10 +105,15 @@ async function listActiveOrders() {
   console.log('my active orders: ', orders);
 }
 
-async function placeLimitOrder() {
-  await checkBalance();
+async function listHistoryOrders() {
+  const orders = await list_history_orders(AccountId);
+  console.log('my history orders: ', orders);
+}
 
-  await listActiveOrders();
+async function placeLimitOrder() {
+  await checkBalance(); // check balance before place a new order
+
+  await listActiveOrders(); // list active order before place a new one
 
   const tokenA = await ftGetTokenMetadata(tokenInId);
 
@@ -122,16 +127,16 @@ async function placeLimitOrder() {
     },
     LimitOrderWithSwap: {
       pool_id,
-      output_amount: '4',
+      output_amount: '5.5',
     },
     AccountId,
   });
 
   await signAndSendTransactions(payload);
 
-  await checkBalance();
+  await checkBalance(); // check balance after place a new order
 
-  await listActiveOrders();
+  await listActiveOrders(); // list active order after place a new one
 }
 
 async function cancelOrder(order_id) {
@@ -139,7 +144,7 @@ async function cancelOrder(order_id) {
 
   await signAndSendTransactions(payload);
 
-  await listActiveOrders();
+  await listActiveOrders(); // list active orders after cancel one
 }
 
 async function signAndSendTransactions(payload) {
@@ -159,15 +164,14 @@ async function signAndSendTransactions(payload) {
     console.log('error: ', e);
   });
 
-  console.log('res: ', res);
-
   console.log('transactions sent!');
 }
 
-// listPools();
+listPools();
 // checkBalance();
 // quoteAmountOut();
 // swapMarketPrice();
 // listActiveOrders();
-placeLimitOrder();
-// cancelOrder('aurora.fakes.testnet|usdc.fakes.testnet|2000#8');
+// placeLimitOrder();
+// cancelOrder('aurora.fakes.testnet|usdc.fakes.testnet|2000#10');
+// listHistoryOrders();
