@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/max-mainnet/ethdenver-sdk-demo#readme",
   "dependencies": {
-    "@ref-finance/ref-sdk": "^1.2.0"
+    "@ref-finance/ref-sdk": "^1.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }
